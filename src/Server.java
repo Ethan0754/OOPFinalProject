@@ -1,6 +1,8 @@
 // Demonstrating Server-side Programming
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Server {
 
@@ -8,6 +10,7 @@ public class Server {
     private Socket clientSocket = null;
     private ServerSocket serverSocket = null;
     private DataInputStream in = null;
+    private List<Socket> clientSockets = new ArrayList<>();
 
     // Constructor with port
     public Server(int port) {
@@ -21,6 +24,7 @@ public class Server {
                 System.out.println("Waiting for a client ...");
 
                 clientSocket = serverSocket.accept();
+                clientSockets.add(clientSocket);
 
                 System.out.println("Client connected: " + clientSocket);
 
@@ -39,7 +43,27 @@ public class Server {
     }
 
 
-private static class ClientHandler extends Thread {
+    public void broadcastMessage(String message){
+        for (Socket clientSocket : clientSockets) {
+            try {
+                DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+                sendMessagesToClients(out, message);
+            } catch (IOException e) {
+                System.out.println("Error broadcasting message" + e.getMessage());
+            }
+        }
+    }
+
+
+    public void sendMessagesToClients(DataOutputStream out, String message){
+        try {
+            out.writeUTF(message);
+        } catch (IOException e) {
+            System.out.println("Error sending message to client: " + e.getMessage());
+        }
+    }
+
+private class ClientHandler extends Thread {
     private Socket clientSocket;
     private DataInputStream inputStream;
 
@@ -57,9 +81,8 @@ private static class ClientHandler extends Thread {
                 // Read messages from the client until "Over" is received
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
-                    if (message.equalsIgnoreCase("Over")) {
-                        break;
-                    }
+
+                    broadcastMessage(clientSocket + "says: " + message);
                 }
                 System.out.println("Client disconnected: " + clientSocket);
 

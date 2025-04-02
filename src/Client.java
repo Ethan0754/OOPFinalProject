@@ -42,7 +42,7 @@ public class Client {
         while (!message.equals("Over")) {
             try {
                 message = in.readLine();
-                sendMessageToServer(clientSocket, message);
+                sendMessageToServer(message);
             } catch (IOException i) {
                 System.out.println(i);
             }
@@ -63,17 +63,21 @@ public class Client {
     }
 
 
-    public void sendMessageToServer(Socket clientSocket, String message) {
-        try {
-            out.writeUTF(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static void main(String[] args) throws InterruptedException {
         Client c = new Client("3.140.25.145", 5000);
     }
+
+
+    public void sendMessageToServer(String message) {
+        try {
+            out.writeUTF(message);
+        } catch (IOException e) {
+            System.out.println("Error sending message to server: " + e.getMessage());
+        }
+    }
+
+
+
 
 
     private static class ReceiveMessages extends Thread {
