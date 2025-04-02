@@ -5,58 +5,75 @@ import java.io.*;
 public class Server {
 
     // Initialize socket and input stream
-    private Socket s = null;
-    private ServerSocket ss = null;
+    private Socket clientSocket = null;
+    private ServerSocket serverSocket = null;
     private DataInputStream in = null;
 
     // Constructor with port
     public Server(int port) {
 
         // Starts server and waits for a connection
-        try
-        {
-            ss = new ServerSocket(port);
+        try {
+            serverSocket = new ServerSocket(port);
             System.out.println("Server started");
 
-            System.out.println("Waiting for a client ...");
+            while (true) {
+                System.out.println("Waiting for a client ...");
 
-            s = ss.accept();
-            System.out.println("Client accepted");
+                clientSocket = serverSocket.accept();
 
-            // Takes input from the client socket
-            in = new DataInputStream(
-                    new BufferedInputStream(s.getInputStream()));
+                System.out.println("Client connected: " + clientSocket);
 
-            String m = "";
-
-            // Reads message from client until "Over" is sent
-            while (!m.equals("Over"))
-            {
-                try
-                {
-                    m = in.readUTF();
-                    System.out.println(m);
-
-                }
-                catch(IOException i)
-                {
-                    System.out.println(i);
-                }
+                new ClientHandler(clientSocket).start();
             }
-            System.out.println("Closing connection");
-
-            // Close connection
-            s.close();
-            in.close();
-        }
-        catch(IOException i)
-        {
-            System.out.println(i);
+        } catch (IOException ex) {
+            System.err.println("Server exception: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
-    public static void main(String args[])
+
+    public static void main(String[] args)
     {
         Server s = new Server(5000);
+    }
+
+
+private static class ClientHandler extends Thread {
+    private Socket clientSocket;
+    private DataInputStream inputStream;
+
+    public ClientHandler(Socket clientSocket) {
+        this.clientSocket = clientSocket;
+    }
+
+    @Override
+    public void run() {
+            try {
+                // Create a DataInputStream to read messages from the client
+                inputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+                String message;
+
+                // Read messages from the client until "Over" is received
+                while ((message = inputStream.readUTF()) != null) {
+                    System.out.println("Client (" + clientSocket + ") says: " + message);
+                    if (message.equalsIgnoreCase("Over")) {
+                        break;
+                    }
+                }
+                System.out.println("Client disconnected: " + clientSocket);
+
+            } catch (IOException e) {
+                System.out.println("Error handling client: " + e.getMessage());
+            } finally {
+
+                try {
+                    if (inputStream != null) inputStream.close();
+                    if (clientSocket != null) clientSocket.close();
+                } catch (IOException e) {
+                    System.out.println("Error closing connection: " + e.getMessage());
+                }
+            }
+        }
     }
 }

@@ -5,7 +5,7 @@ import java.net.*;
 public class Client {
 
     // Initialize socket and input/output streams
-    private Socket s = null;
+    private Socket clientSocket = null;
     private DataInputStream in = null;
     private DataOutputStream out = null;
 
@@ -14,14 +14,14 @@ public class Client {
     {
         // Establish a connection
         try {
-            s = new Socket(addr, port);
+            clientSocket = new Socket(addr, port);
             System.out.println("Connected");
 
             // Takes input from terminal
             in = new DataInputStream(System.in);
 
             // Sends output to the socket
-            out = new DataOutputStream(s.getOutputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
         }
         catch (UnknownHostException u) {
             System.out.println(u);
@@ -50,7 +50,7 @@ public class Client {
         try {
             in.close();
             out.close();
-            s.close();
+            clientSocket.close();
         }
         catch (IOException i) {
             System.out.println(i);
