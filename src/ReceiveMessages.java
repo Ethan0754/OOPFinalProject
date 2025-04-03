@@ -20,7 +20,7 @@ public class ReceiveMessages extends Thread {
 
             while (!clientSocket.isClosed()) {
                 message = inputStream.readUTF();
-                System.out.println(clientSocket + ": " + message);
+                System.out.println(message);
             }
         } catch (IOException e) {
             System.out.println("Connection closed or error receiving messages: " + e.getMessage());

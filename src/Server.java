@@ -71,6 +71,8 @@ public class Server {
     private class ClientHandler extends Thread {
     private Socket clientSocket;
     private DataInputStream inputStream;
+    private DataOutputStream outputStream;
+    private String username;
 
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -79,16 +81,25 @@ public class Server {
     @Override
     public void run() {
             try {
+
                 // Create a DataInputStream to read messages from the client
                 inputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+                outputStream = new DataOutputStream(clientSocket.getOutputStream());
+                outputStream.writeUTF("Please enter your username: ");
+                username = inputStream.readUTF();
+                outputStream.writeUTF("Welcome " + username + "!");
                 String message;
 
 
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
 
-                    broadcastMessage(clientSocket + "says: " + message);
+                    broadcastMessage(username + ": " + message);
                 }
+
+                outputStream.writeUTF(username + " has left the chat room.");
+                clientSockets.remove(clientSocket);
+
                 System.out.println("Client disconnected: " + clientSocket);
 
             } catch (IOException e) {
