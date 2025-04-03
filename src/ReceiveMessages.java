@@ -20,6 +20,7 @@ public class ReceiveMessages extends Thread {
 
             while (!clientSocket.isClosed()) {
                 message = inputStream.readUTF();
+                // Will need to implement for GUI
                 System.out.println(message);
             }
         } catch (IOException e) {
