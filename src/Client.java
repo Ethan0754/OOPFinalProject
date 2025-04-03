@@ -1,4 +1,3 @@
-// Demonstrating Client-side Programming
 import java.io.*;
 import java.net.*;
 
@@ -28,10 +27,10 @@ public class Client {
             receiveMessagesThread.start();
 
         } catch (UnknownHostException u) {
-            System.out.println(u);
+            System.out.println("Unknown host: " + u.getMessage());
             return;
         } catch (IOException i) {
-            System.out.println(i);
+            System.out.println("I/O error: " + i.getMessage());
             return;
         }
 
@@ -43,8 +42,8 @@ public class Client {
             try {
                 message = in.readLine();
                 sendMessageToServer(message);
-            } catch (IOException i) {
-                System.out.println(i);
+            } catch (IOException e) {
+                System.out.println("Error reading message: " + e.getMessage());
             }
         }
 
@@ -56,8 +55,8 @@ public class Client {
             in.close();
             out.close();
             clientSocket.close();
-        } catch (IOException i) {
-            System.out.println(i);
+        } catch (IOException e ) {
+            System.out.println("Error closing connection: " + e.getMessage());
         }
 
     }
@@ -77,37 +76,4 @@ public class Client {
     }
 
 
-
-
-
-    private static class ReceiveMessages extends Thread {
-        private Socket clientSocket;
-        private DataInputStream inputStream;
-
-        public ReceiveMessages(Socket clientSocket) {
-            this.clientSocket = clientSocket;
-        }
-
-        @Override
-        public void run() {
-            try {
-                inputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
-
-                String message;
-
-                while (!clientSocket.isClosed()) {
-                    message = inputStream.readUTF();
-                    System.out.println(clientSocket + ": " + message);
-                }
-            } catch (IOException e) {
-                System.out.println("Connection closed or error receiving messages: " + e.getMessage());
-            } finally {
-                try {
-                    if (inputStream != null) inputStream.close();
-                } catch (IOException ex) {
-                    System.out.println("Error closing input stream: " + ex.getMessage());
-                }
-            }
-        }
-    }
 }

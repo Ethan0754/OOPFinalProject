@@ -1,4 +1,3 @@
-// Demonstrating Server-side Programming
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -37,8 +36,7 @@ public class Server {
     }
 
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args){
         Server s = new Server(5000);
     }
 
@@ -63,7 +61,14 @@ public class Server {
         }
     }
 
-private class ClientHandler extends Thread {
+
+    /**
+     * A private nested class that handles communication with a connected client
+     * in a multithreaded server application. Each client connection is processed
+     * on an individual thread, allowing concurrent handling of multiple clients.
+     *
+     */
+    private class ClientHandler extends Thread {
     private Socket clientSocket;
     private DataInputStream inputStream;
 
@@ -78,7 +83,7 @@ private class ClientHandler extends Thread {
                 inputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
                 String message;
 
-                // Read messages from the client until "Over" is received
+
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
 
