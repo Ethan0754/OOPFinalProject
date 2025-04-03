@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Server {
@@ -9,7 +10,10 @@ public class Server {
     private Socket clientSocket = null;
     private ServerSocket serverSocket = null;
     private DataInputStream in = null;
-    private List<Socket> clientSockets = new ArrayList<>();
+    // private List<Socket> clientSockets = new ArrayList<>();
+    // Use synchronized list to prevent threading issues while adding or removing a socket
+    private List<Socket> clientSockets = Collections.synchronizedList(new ArrayList<>());
+
 
     // Constructor with port
     public Server(int port) {
@@ -85,6 +89,7 @@ public class Server {
                 // Create a DataInputStream to read messages from the client
                 inputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
                 outputStream = new DataOutputStream(clientSocket.getOutputStream());
+                // Will need to implement for GUI
                 outputStream.writeUTF("Please enter your username: ");
                 username = inputStream.readUTF();
                 outputStream.writeUTF("Welcome " + username + "!");
@@ -94,12 +99,15 @@ public class Server {
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
 
+                    // Will need to implement for GUI
                     broadcastMessage(username + ": " + message);
                 }
 
+                // Will need to implement for GUI
                 outputStream.writeUTF(username + " has left the chat room.");
                 clientSockets.remove(clientSocket);
 
+                // Will need to implement for GUI
                 System.out.println("Client disconnected: " + clientSocket);
 
             } catch (IOException e) {
