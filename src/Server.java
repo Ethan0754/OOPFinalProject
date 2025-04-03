@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class Server {
+    // Integer constants
+    public static final int SERVER_PORT = 5000;
+
 
     // Initialize socket and input stream
     private Socket clientSocket = null;
@@ -41,7 +44,7 @@ public class Server {
 
 
     public static void main(String[] args){
-        Server s = new Server(5000);
+        Server s = new Server(SERVER_PORT);
     }
 
 

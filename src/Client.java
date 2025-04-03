@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 
 public class Client {
+    // String and Integer constants
     public static final String SERVER_IP = "3.140.25.145";
     public static final int SERVER_PORT = 5000;
 
