@@ -13,6 +13,7 @@ public class Client {
     private DataOutputStream out = null;
     private Thread receiveMessagesThread;
 
+
     // Constructor to put IP address and port
     public Client(String addr, int port) throws InterruptedException {
         // Establish a connection

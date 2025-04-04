@@ -2,12 +2,16 @@ package GUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
-public class ChatRoom extends JFrame {
+public class ChatRoom extends JFrame implements ChatEventHandler{
     // Integer constants
     public static final int WINDOW_WIDTH = 900;
     public static final int WINDOW_HEIGHT = 600;
 
+    // Initialize panels
+    private ChatPanel chatPanel;
 
     public ChatRoom() {
         setTitle("Chat Room");
@@ -15,7 +19,8 @@ public class ChatRoom extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Centers the window
 
-        ChatPanel chatPanel = new ChatPanel();
+        // Create panels
+        chatPanel = new ChatPanel(this);
 
         // Other panels to be added:
         add(chatPanel, BorderLayout.CENTER);
@@ -24,6 +29,13 @@ public class ChatRoom extends JFrame {
 
         setVisible(true);
 
+    }
+
+    @Override
+    public void onSendMessage(String username, String message) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+        String time = LocalTime.now().format(dtf);
+        chatPanel.appendMessage(String.format("%s: %s%50s", username, message, time));
     }
 
     public static void main(String[] args) {
