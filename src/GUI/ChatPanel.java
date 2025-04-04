@@ -19,6 +19,7 @@ public class ChatPanel extends JPanel {
     private ChatEventHandler eventHandler;
 
     public ChatPanel(ChatEventHandler handler) {
+        // Allows ChatPanel to call back to the ChatRoom whenever a message is sent
         this.eventHandler = handler;
 
         // The Chat Room Name will eventually be editable
@@ -34,6 +35,11 @@ public class ChatPanel extends JPanel {
         // Area for displaying chat messages
         chatArea = new JTextArea();
         chatArea.setEditable(false);
+
+        // Wrapping text
+        chatArea.setLineWrap(true);
+        chatArea.setWrapStyleWord(true);
+
         JScrollPane scrollPane = new JScrollPane(chatArea);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -109,10 +115,7 @@ public class ChatPanel extends JPanel {
         });
     }
 
-    /**
-     * Appends a message to the chat area with a newline.
-     * @param message The message to display.
-     */
+    // Appends a message to the chat area with a newline.
     public void appendMessage(String message) {
         chatArea.append(message + "\n");
     }
