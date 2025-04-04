@@ -47,7 +47,7 @@ public class ChatRoom extends JFrame implements ChatEventHandler{
         // If a message is longer than 70 characters than append the message normally with the timestamp
         // On a new line, add the timestamp that is right-aligned
         if (fullMessage.length() > 70) {
-            chatPanel.appendMessage(fullMessage + "\n" + String.format("%70s", timestamp));
+            chatPanel.appendMessage(fullMessage + String.format("%70s", timestamp));
         } else {
             int paddingLength = Math.max(0, 70 - fullMessage.length());
             String padding = " ".repeat(paddingLength);

@@ -51,7 +51,6 @@ public class ChatPanel extends JPanel {
 
         // Send button
         sendButton = new JButton("Send");
-        sendButton.setEnabled(false); // Disabling the send button until the username is set.
 
         // Add panels
         inputPanel.add(messageField, BorderLayout.CENTER);
@@ -71,27 +70,38 @@ public class ChatPanel extends JPanel {
                 username = usernameField.getText().trim();
                 if (!username.isEmpty()) {
                     usernameField.setEditable(false);
-                    sendButton.setEnabled(true);
-                }
+                 }
             }
         });
     }
 
     // Action listener for Send button
     private void addSendButtonListener() {
-        sendButton.addActionListener(new ActionListener() {
+        // Shared action used by both the button and Enter key
+        ActionListener sendAction = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (username != null && !username.isEmpty()) {
-                    String message = messageField.getText().trim();
-                    if (!message.isEmpty()) {
-                        eventHandler.onSendMessage(username, message);
-                        messageField.setText("");
-                    }
+                // Does not let a user send a message until they input a username
+                if (username == null || username.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(ChatPanel.this, "Please enter a username.", "Username Required", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                // Send message
+                String message = messageField.getText().trim();
+                if (!message.isEmpty() && !message.equals(placeholderText)) {
+                    eventHandler.onSendMessage(username, message);
+                    messageField.setText("");
+                    messageField.setForeground(Color.GRAY);
+                    messageField.setText(placeholderText);
                 }
             }
-        });
+        };
+
+        // Add listeners for Send button and Enter key
+        sendButton.addActionListener(sendAction);
+        messageField.addActionListener(sendAction);
     }
+
 
     // Adds a FocusListener to the message field so that "Enter Text Here:"
     // is cleared when clicked and comes back when clicked off of
