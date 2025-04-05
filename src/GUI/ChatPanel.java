@@ -11,16 +11,21 @@ public class ChatPanel extends JPanel {
     // String constants
     private final String placeholderText = "Enter Text Here";
 
+    // GUI
     private JTextArea chatArea;
     private JTextField messageField;
     private JTextField usernameField;
     private String username;
     private JButton sendButton;
-    private ChatEventHandler eventHandler;
 
-    public ChatPanel(ChatEventHandler handler) {
-        // Allows ChatPanel to call back to the ChatRoom whenever a message is sent
+    // Interface
+    private ChatEventHandler eventHandler;
+    private UserUpdateHandler userUpdateHandler;
+
+    public ChatPanel(ChatEventHandler handler, UserUpdateHandler userUpdateHandler) {
+        // Interface
         this.eventHandler = handler;
+        this.userUpdateHandler = userUpdateHandler;
 
         // The Chat Room Name will eventually be editable
         setBorder(BorderFactory.createTitledBorder("Chat Room Name"));
@@ -40,6 +45,7 @@ public class ChatPanel extends JPanel {
         chatArea.setLineWrap(true);
         chatArea.setWrapStyleWord(true);
 
+        // ScrollPane
         JScrollPane scrollPane = new JScrollPane(chatArea);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -62,14 +68,19 @@ public class ChatPanel extends JPanel {
         addSendButtonListener();
     }
 
-    // Action listener for Username textbox
+    // Action listener for username textbox
     private void addUsernameListener() {
         usernameField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 username = usernameField.getText().trim();
+                // If a username is entered, do not allow the user to change it.
+                // Can maybe change this so usernames can be changed and updated in ActiveUsers and following messages
                 if (!username.isEmpty()) {
                     usernameField.setEditable(false);
+
+                    // Update the active users panel with the username
+                    userUpdateHandler.updateActiveUsers(new String[]{username});
                  }
             }
         });
@@ -91,8 +102,6 @@ public class ChatPanel extends JPanel {
                 if (!message.isEmpty() && !message.equals(placeholderText)) {
                     eventHandler.onSendMessage(username, message);
                     messageField.setText("");
-                    messageField.setForeground(Color.GRAY);
-                    messageField.setText(placeholderText);
                 }
             }
         };
