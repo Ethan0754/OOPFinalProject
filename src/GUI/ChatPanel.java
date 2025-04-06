@@ -94,13 +94,14 @@ public class ChatPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 // Does not let a user send a message until they input a username
                 if (username == null || username.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(ChatPanel.this, "Please enter a username.", "Username Required", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(ChatPanel.this,
+                            "Please enter a username.", "Username Required", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
                 // Send message
                 String message = messageField.getText().trim();
                 if (!message.isEmpty() && !message.equals(placeholderText)) {
-                    eventHandler.onSendMessage(username, message);
+                    eventHandler.onSendMessage(username, message, false);
                     messageField.setText("");
                 }
             }
@@ -137,6 +138,11 @@ public class ChatPanel extends JPanel {
     // Appends a message to the chat area with a newline.
     public void appendMessage(String message) {
         chatArea.append(message + "\n");
+    }
+
+    // Gets the client's username
+    public String getUsername() {
+        return username;
     }
 
 }
