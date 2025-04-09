@@ -1,3 +1,5 @@
+package ClientServerNetwork;
+
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -81,6 +83,7 @@ public class Server {
     private DataOutputStream outputStream;
     private String username;
 
+
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
     }
@@ -96,6 +99,7 @@ public class Server {
                 outputStream.writeUTF("Please enter your username: ");
                 username = inputStream.readUTF();
                 outputStream.writeUTF("Welcome " + username + "!");
+                System.out.println("Client (" + clientSocket + ") entered username: " + username);
                 String message;
 
 

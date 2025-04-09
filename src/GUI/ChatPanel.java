@@ -1,11 +1,13 @@
 package GUI;
 
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import ClientServerNetwork.*;
 
 public class ChatPanel extends JPanel {
     // String constants
@@ -17,12 +19,15 @@ public class ChatPanel extends JPanel {
     private JTextField usernameField;
     private String username;
     private JButton sendButton;
+    private Client client;
+
 
     // Interface
     private ChatEventHandler eventHandler;
     private UserUpdateHandler userUpdateHandler;
 
-    public ChatPanel(ChatEventHandler handler, UserUpdateHandler userUpdateHandler) {
+
+    public ChatPanel(ChatEventHandler handler, UserUpdateHandler userUpdateHandler) throws InterruptedException {
         // Interface
         this.eventHandler = handler;
         this.userUpdateHandler = userUpdateHandler;
@@ -63,10 +68,28 @@ public class ChatPanel extends JPanel {
         inputPanel.add(sendButton, BorderLayout.EAST);
         add(inputPanel, BorderLayout.SOUTH);
 
-        // Add action listeners for Username and Send
+
         addUsernameListener();
         addSendButtonListener();
+
+        usernameField.setText("Connecting to the server...");
+        new Thread(() -> {
+            try {
+
+                client = Client.getInstance();
+
+                SwingUtilities.invokeLater(() -> {
+                    usernameField.setText("");
+                    appendMessage("Connected to the server. Please enter your username:");
+                });
+            } catch (InterruptedException e) {
+                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this,
+                        "Error: Unable to connect to server.\n" + e.getMessage(),
+                        "Connection Error", JOptionPane.ERROR_MESSAGE));
+            }
+        }).start();
     }
+
 
     // Action listener for username textbox
     private void addUsernameListener() {
@@ -74,6 +97,9 @@ public class ChatPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 username = usernameField.getText().trim();
+                if (client != null && !username.isEmpty()) {
+                    client.sendMessageToServer(username);
+                }
                 // If a username is entered, do not allow the user to change it.
                 // Can maybe change this so usernames can be changed and updated in ActiveUsers and following messages
                 if (!username.isEmpty()) {
@@ -101,8 +127,10 @@ public class ChatPanel extends JPanel {
                 // Send message
                 String message = messageField.getText().trim();
                 if (!message.isEmpty() && !message.equals(placeholderText)) {
+                    client.sendMessageToServer(message);
                     eventHandler.onSendMessage(username, message, false);
                     messageField.setText("");
+
                 }
             }
         };
