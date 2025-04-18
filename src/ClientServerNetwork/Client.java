@@ -1,6 +1,6 @@
 package ClientServerNetwork;
-
 import GUI.ChatEventHandler;
+import GUI.ChatPanel;
 
 import java.io.*;
 import java.net.*;
@@ -11,12 +11,13 @@ public class Client {
     public static final int SERVER_PORT = 5000;
     private static Client instance = null;
 
+
     // Initialize socket and input/output streams
     private Socket clientSocket = null;
     private DataInputStream in = null;
     private DataOutputStream out = null;
     private Thread receiveMessagesThread;
-    private ChatEventHandler chatEventHandler;
+
 
 
     // Constructor to put IP address and port
@@ -29,9 +30,6 @@ public class Client {
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
 
-            // Thread to handle receiving messages from the server
-            receiveMessagesThread = new Thread(new ReceiveMessages(clientSocket, chatEventHandler));
-            receiveMessagesThread.start();
 
         } catch (UnknownHostException u) {
             System.out.println("Unknown host: " + u.getMessage());
@@ -87,4 +85,11 @@ public class Client {
             System.out.println("Error sending message to server: " + e.getMessage());
         }
     }
+
+    public void startReceiveMessagesThread(ChatEventHandler chatEventHandler) {
+        ReceiveMessages receive = new ReceiveMessages(clientSocket, chatEventHandler);
+        Thread receiverThread = new Thread(receive);
+        receiverThread.start();
+    }
+
 }

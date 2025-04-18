@@ -77,6 +77,7 @@ public class ChatPanel extends JPanel implements ChatEventHandler{
             try {
 
                 client = Client.getInstance();
+                client.startReceiveMessagesThread(this);
 
                 SwingUtilities.invokeLater(() -> {
                     usernameField.setText("");
@@ -175,6 +176,6 @@ public class ChatPanel extends JPanel implements ChatEventHandler{
 
     @Override
     public void onSendMessage(String username, String message, boolean isDirect) {
-        appendMessage(username + ": " + message);
+        SwingUtilities.invokeLater(() -> appendMessage(username + ": " + message));
     }
 }

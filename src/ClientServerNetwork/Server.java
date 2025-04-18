@@ -65,6 +65,7 @@ public class Server {
     public void sendMessagesToClients(DataOutputStream out, String message){
         try {
             out.writeUTF(message);
+            out.flush();
         } catch (IOException e) {
             System.out.println("Error sending message to client: " + e.getMessage());
         }
