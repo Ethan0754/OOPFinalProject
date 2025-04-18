@@ -76,11 +76,11 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
         if (message.contains(":")) {
             finalOutput = message + "\n(" + timestamp + ")\n";
         }
-        else if (chatPanel.getUsername().isEmpty() || message.startsWith("Welcome")) {
+        else if (chatPanel.getUsername().equals("") || message.startsWith("Welcome")) {
             finalOutput = "Server: " + message + "\n(" + timestamp + ")\n";
         }
         else {
-            finalOutput = chatPanel.getUsername() + ": " + message + "\n(" + timestamp + ")\n";
+            finalOutput =  message + "\n(" + timestamp + ")\n";
         }
 
         if (isDirect) {

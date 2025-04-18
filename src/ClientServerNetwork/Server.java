@@ -17,7 +17,6 @@ public class Server {
     private DataInputStream in = null;
     // Use synchronized list to prevent threading issues while adding or removing a socket
     private List<Socket> clientSockets = Collections.synchronizedList(new ArrayList<>());
-    private List<String> connectedUsers = new ArrayList<>();
 
     // Constructor with port
     public Server(int port) {
@@ -47,20 +46,6 @@ public class Server {
     public static void main(String[] args){
         Server s = new Server(SERVER_PORT);
     }
-
-
-    public synchronized void onClientConnect(DataOutputStream out, String username) throws IOException {
-        connectedUsers.add(username);
-        out.writeUTF("Welcome " + username + "!");
-
-    }
-
-    public synchronized void onClientDisconnect(DataOutputStream out, String username) throws IOException {
-        connectedUsers.remove(username);
-        out.writeUTF(username + "has left the chat");
-    }
-
-
 
 
 
@@ -111,9 +96,9 @@ public class Server {
                 inputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
                 outputStream = new DataOutputStream(clientSocket.getOutputStream());
                 // Will need to implement for GUI
-                outputStream.writeUTF("Please enter your username: ");
+                outputStream.writeUTF("Please enter your username");
                 username = inputStream.readUTF();
-                onClientConnect(outputStream, username);
+                outputStream.writeUTF("Welcome " + username + "!");
                 System.out.println("Client (" + clientSocket + ") entered username: " + username);
                 String message;
 
@@ -121,10 +106,10 @@ public class Server {
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
 
-                    broadcastMessage(message);
+                    broadcastMessage(username + ": " + message);
                 }
 
-                onClientDisconnect(outputStream, username);
+                System.out.println("Client (" + clientSocket + ") disconnected");
                 clientSockets.remove(clientSocket);
 
 
