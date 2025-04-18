@@ -16,7 +16,7 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
 
 
     // String constants
-    public static final String WINDOW_TITLE = "Test Room";
+    public static final String WINDOW_TITLE = "Chat Room";
     public static final String DATE_FORMAT = "MMMM d, hh:mm a";
 
     // Initialize panels
@@ -70,13 +70,23 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
     public void onSendMessage(String username, String message, boolean isDirect) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, hh:mm a");
         String timestamp = LocalDateTime.now().format(formatter);
-        // Simulate bold by wrapping in double asterisks
-        String header = "" + username + " " + timestamp + "";
-        String finalOutput = header + "\n" + message;
+        String finalOutput;
+
+        // prevent duplicate username in output
+        if (message.contains(":")) {
+            finalOutput = message + "\n(" + timestamp + ")\n";
+        }
+        else if (chatPanel.getUsername().isEmpty() || message.startsWith("Welcome")) {
+            finalOutput = "Server: " + message + "\n(" + timestamp + ")\n";
+        }
+        else {
+            finalOutput = chatPanel.getUsername() + ": " + message + "\n(" + timestamp + ")\n";
+        }
 
         if (isDirect) {
             directMessagePanel.appendDirectMessage(finalOutput);
-        } else {
+        }
+        else {
             chatPanel.appendMessage(finalOutput);
         }
     }

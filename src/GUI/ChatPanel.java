@@ -9,7 +9,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import ClientServerNetwork.*;
 
-public class ChatPanel extends JPanel implements ChatEventHandler{
+public class ChatPanel extends JPanel{
     // String constants
     private final String placeholderText = "Enter Text Here";
 
@@ -33,7 +33,7 @@ public class ChatPanel extends JPanel implements ChatEventHandler{
         this.userUpdateHandler = userUpdateHandler;
 
         // The Chat Room Name will eventually be editable
-        setBorder(BorderFactory.createTitledBorder("Chat Room Name"));
+        setBorder(BorderFactory.createTitledBorder("Epic Chat Room"));
         setLayout(new BorderLayout());
 
         // Username input field
@@ -77,11 +77,11 @@ public class ChatPanel extends JPanel implements ChatEventHandler{
             try {
 
                 client = Client.getInstance();
-                client.startReceiveMessagesThread(this);
+                client.startReceiveMessagesThread(handler);
 
                 SwingUtilities.invokeLater(() -> {
                     usernameField.setText("");
-                    appendMessage("Connected to the server. Please enter your username:");
+                    appendMessage("Connected to the server.");
                 });
             } catch (InterruptedException e) {
                 SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this,
@@ -129,7 +129,6 @@ public class ChatPanel extends JPanel implements ChatEventHandler{
                 String message = messageField.getText().trim();
                 if (!message.isEmpty() && !message.equals(placeholderText)) {
                     client.sendMessageToServer(message);
-                    eventHandler.onSendMessage(username, message, false);
                     messageField.setText("");
 
                 }
@@ -165,17 +164,18 @@ public class ChatPanel extends JPanel implements ChatEventHandler{
     }
 
     // Appends a message to the chat area with a newline.
-    public void appendMessage(String message) {
+    public synchronized void appendMessage(String message) {
         chatArea.append(message + "\n");
+        chatArea.repaint();
     }
 
     // Gets the client's username
     public String getUsername() {
+        if (username == null) {
+            return "";
+        }
+
         return username;
     }
 
-    @Override
-    public void onSendMessage(String username, String message, boolean isDirect) {
-        SwingUtilities.invokeLater(() -> appendMessage(username + ": " + message));
-    }
 }

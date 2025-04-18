@@ -2,6 +2,7 @@ package ClientServerNetwork;
 
 import GUI.ChatEventHandler;
 
+import javax.swing.*;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -30,7 +31,11 @@ public class ReceiveMessages extends Thread{
                 System.out.println(message);
 
                 if (chatEventHandler != null){
-                    chatEventHandler.onSendMessage("server", message, false);
+                    String finalMessage = message;
+                    SwingUtilities.invokeLater(() -> {
+                        chatEventHandler.onSendMessage("",finalMessage, false);
+
+                    });
                 }
 
 

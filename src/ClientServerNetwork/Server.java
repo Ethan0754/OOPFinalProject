@@ -15,10 +15,9 @@ public class Server {
     private Socket clientSocket = null;
     private ServerSocket serverSocket = null;
     private DataInputStream in = null;
-    // private List<Socket> clientSockets = new ArrayList<>();
     // Use synchronized list to prevent threading issues while adding or removing a socket
     private List<Socket> clientSockets = Collections.synchronizedList(new ArrayList<>());
-
+    private List<String> connectedUsers = new ArrayList<>();
 
     // Constructor with port
     public Server(int port) {
@@ -48,6 +47,21 @@ public class Server {
     public static void main(String[] args){
         Server s = new Server(SERVER_PORT);
     }
+
+
+    public synchronized void onClientConnect(DataOutputStream out, String username) throws IOException {
+        connectedUsers.add(username);
+        out.writeUTF("Welcome " + username + "!");
+
+    }
+
+    public synchronized void onClientDisconnect(DataOutputStream out, String username) throws IOException {
+        connectedUsers.remove(username);
+        out.writeUTF(username + "has left the chat");
+    }
+
+
+
 
 
     public void broadcastMessage(String message){
@@ -99,7 +113,7 @@ public class Server {
                 // Will need to implement for GUI
                 outputStream.writeUTF("Please enter your username: ");
                 username = inputStream.readUTF();
-                outputStream.writeUTF("Welcome " + username + "!");
+                onClientConnect(outputStream, username);
                 System.out.println("Client (" + clientSocket + ") entered username: " + username);
                 String message;
 
@@ -107,15 +121,13 @@ public class Server {
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
 
-                    // Will need to implement for GUI
-                    broadcastMessage(username + ": " + message);
+                    broadcastMessage(message);
                 }
 
-                // Will need to implement for GUI
-                outputStream.writeUTF(username + " has left the chat room.");
+                onClientDisconnect(outputStream, username);
                 clientSockets.remove(clientSocket);
 
-                // Will need to implement for GUI
+
                 System.out.println("Client disconnected: " + clientSocket);
 
             } catch (IOException e) {

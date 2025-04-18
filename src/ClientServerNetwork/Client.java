@@ -42,9 +42,6 @@ public class Client {
 
 
     public static void main(String[] args) throws InterruptedException {
-        // ClientServerNetwork.Client c = new ClientServerNetwork.Client("3.140.25.145", 5000);
-
-        // Using String and Integer constants
         Client c = new Client(SERVER_IP, SERVER_PORT);
     }
 
