@@ -9,7 +9,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import ClientServerNetwork.*;
 
-public class ChatPanel extends JPanel {
+public class ChatPanel extends JPanel implements ChatEventHandler{
     // String constants
     private final String placeholderText = "Enter Text Here";
 
@@ -173,4 +173,8 @@ public class ChatPanel extends JPanel {
         return username;
     }
 
+    @Override
+    public void onSendMessage(String username, String message, boolean isDirect) {
+        appendMessage(username + ": " + message);
+    }
 }

@@ -1,16 +1,20 @@
 package ClientServerNetwork;
 
+import GUI.ChatEventHandler;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ReceiveMessages extends Thread {
+public class ReceiveMessages extends Thread{
     private Socket clientSocket;
     private DataInputStream inputStream;
+    private ChatEventHandler chatEventHandler;
 
-    public ReceiveMessages(Socket clientSocket) {
+    public ReceiveMessages(Socket clientSocket, ChatEventHandler chatEventHandler) {
         this.clientSocket = clientSocket;
+        this.chatEventHandler = chatEventHandler;
     }
 
     @Override
@@ -24,6 +28,12 @@ public class ReceiveMessages extends Thread {
                 message = inputStream.readUTF();
                 // Will need to implement for GUI
                 System.out.println(message);
+
+                if (chatEventHandler != null){
+                    chatEventHandler.onSendMessage("server", message, false);
+                }
+
+
             }
         } catch (IOException e) {
             System.out.println("Connection closed or error receiving messages: " + e.getMessage());
