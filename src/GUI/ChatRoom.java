@@ -72,6 +72,12 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
         String timestamp = LocalDateTime.now().format(formatter);
         String finalOutput;
 
+        if (message.startsWith("USER_LIST_UPDATE=")) {
+            String users = message.substring("USER_LIST_UPDATE=".length());
+            updateActiveUsers(users.split(","));
+            return;
+        }
+
         // prevent duplicate username in output
         if (message.contains(":")) {
             finalOutput = message + "\n(" + timestamp + ")\n";

@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
     // Integer constants
@@ -17,6 +18,7 @@ public class Server {
     private DataInputStream in = null;
     // Use synchronized list to prevent threading issues while adding or removing a socket
     private List<Socket> clientSockets = Collections.synchronizedList(new ArrayList<>());
+    private ConcurrentHashMap<Socket, String> usernameMap = new ConcurrentHashMap<>();
 
     // Constructor with port
     public Server(int port) {
@@ -45,6 +47,13 @@ public class Server {
 
     public static void main(String[] args){
         Server s = new Server(SERVER_PORT);
+    }
+
+    public void broadcastUserList() {
+        List<String> usernames = new ArrayList<>(usernameMap.values());
+        String userList = String.join(",", usernames);
+        String message = "USER_LIST_UPDATE=" + userList;
+        broadcastMessage(message);
     }
 
 
@@ -95,25 +104,26 @@ public class Server {
                 // Create a DataInputStream to read messages from the client
                 inputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
                 outputStream = new DataOutputStream(clientSocket.getOutputStream());
-                // Will need to implement for GUI
                 outputStream.writeUTF("Please enter your username");
                 username = inputStream.readUTF();
                 outputStream.writeUTF("Welcome " + username + "!");
+                usernameMap.put(clientSocket, username);
+                broadcastUserList(); // notify current users connected on connection
                 System.out.println("Client (" + clientSocket + ") entered username: " + username);
                 String message;
 
 
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
-
                     broadcastMessage(username + ": " + message);
                 }
 
                 System.out.println("Client (" + clientSocket + ") disconnected");
                 clientSockets.remove(clientSocket);
 
-
                 System.out.println("Client disconnected: " + clientSocket);
+                usernameMap.remove(clientSocket);
+                broadcastUserList(); // notify current users connected after disconnect
 
             } catch (IOException e) {
                 System.out.println("Error handling client: " + e.getMessage());
