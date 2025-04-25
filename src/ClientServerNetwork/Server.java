@@ -117,17 +117,13 @@ public class Server {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
                     broadcastMessage(username + ": " + message);
                 }
-
-                System.out.println("Client (" + clientSocket + ") disconnected");
-                clientSockets.remove(clientSocket);
-
-                System.out.println("Client disconnected: " + clientSocket);
-                usernameMap.remove(clientSocket);
-                broadcastUserList(); // notify current users connected after disconnect
-
             } catch (IOException e) {
                 System.out.println("Error handling client: " + e.getMessage());
             } finally {
+                System.out.println("Closing connection: " + clientSocket);
+                clientSockets.remove(clientSocket);
+                usernameMap.remove(clientSocket);
+                broadcastUserList();
 
                 try {
                     if (inputStream != null) inputStream.close();
