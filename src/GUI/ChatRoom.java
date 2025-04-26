@@ -78,6 +78,13 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
             return;
         }
 
+        if (isDirect) {
+            String privateMessage = message.substring("DIRECT_MESSAGE=".length());
+            privateMessage = privateMessage + "\n(" + timestamp + ")\n";
+            directMessagePanel.appendDirectMessage(privateMessage);
+            return;
+        }
+
         // prevent duplicate username in output
         if (message.contains(":")) {
             finalOutput = message + "\n(" + timestamp + ")\n";
@@ -89,12 +96,8 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
             finalOutput =  message + "\n(" + timestamp + ")\n";
         }
 
-        if (isDirect) {
-            directMessagePanel.appendDirectMessage(finalOutput);
-        }
-        else {
-            chatPanel.appendMessage(finalOutput);
-        }
+        chatPanel.appendMessage(finalOutput);
+
     }
 
     // Updates the active users in the active users panel when a client's username is entered
@@ -107,6 +110,7 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
     public void triggerDirectMessagePanel(String recipient) {
         directMessagePanel.setBorder(BorderFactory.createTitledBorder(recipient));
         directMessagePanel.setUsername(chatPanel.getUsername());
+        directMessagePanel.setRecipient(recipient);
         directMessageWindow.setVisible(true);
     }
 

@@ -16,6 +16,7 @@ public class DirectMessagePanel extends JPanel {
     private JTextField dmField;
     private JButton dmSendButton;
     private String username;
+    private String recipient;
 
     // Interface
     private ChatEventHandler eventHandler;
@@ -66,7 +67,8 @@ public class DirectMessagePanel extends JPanel {
                 // Send message
                 String message = dmField.getText().trim();
                 if (!message.isEmpty() && !message.equals(placeholderText)) {
-                    eventHandler.onSendMessage(username, message, true);
+                    String finalMessage = "DIRECT_MESSAGE=" + recipient + ":" + message;
+                    eventHandler.onSendMessage(username, finalMessage, true);
                     dmField.setText("");
                 }
             }
@@ -112,6 +114,10 @@ public class DirectMessagePanel extends JPanel {
 
     public void setEventHandler(ChatEventHandler handler) {
         this.eventHandler = handler;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
     }
 
 }

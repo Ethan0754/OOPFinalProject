@@ -56,6 +56,20 @@ public class Server {
         broadcastMessage(message);
     }
 
+    public void sendDirectMessage(String recipientUsername, String message) {
+        for (Socket clientSocket : usernameMap.keySet()) {
+            if (usernameMap.get(clientSocket).equals(recipientUsername)) {
+                try {
+                    DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+                    sendMessagesToClients(out, "DIRECT_MESSAGE=" + message);
+                } catch (IOException e) {
+                    System.out.println("Error sending direct message to client: " + e.getMessage());
+                }
+                break;
+            }
+        }
+    }
+
 
 
     public void broadcastMessage(String message){
@@ -115,7 +129,19 @@ public class Server {
 
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
-                    broadcastMessage(username + ": " + message);
+                    if (message.startsWith("DIRECT_MESSAGE=")) {
+                        String privateMessage = message.substring("DIRECT_MESSAGE=".length());
+                        String[] partsOfMessage = privateMessage.split(":", 2);
+
+                        if (partsOfMessage.length == 2) {
+                            String recipientUsername = partsOfMessage[0];
+                            String privateMessageContent = partsOfMessage[1];
+                            sendDirectMessage(recipientUsername, privateMessageContent);
+                        }
+                    }
+                    else {
+                        broadcastMessage(username + ": " + message);
+                    }
                 }
             } catch (IOException e) {
                 System.out.println("Error handling client: " + e.getMessage());
