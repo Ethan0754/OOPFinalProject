@@ -58,6 +58,17 @@ public class Server {
     }
 
     public void sendDirectMessage(String senderUsername, String recipientUsername, String message, Socket senderSocket) {
+        // send message to yourself, special scenario: only send it once
+        if (senderUsername.equals(recipientUsername)) {
+            try {
+                DataOutputStream out = new DataOutputStream(senderSocket.getOutputStream());
+                sendMessagesToClients(out, "DIRECT_MESSAGE=" + senderUsername + ":" + recipientUsername + ":" + message);
+            } catch (IOException e) {
+                System.out.println("Error sending direct message to self: " + e.getMessage());
+            }
+            return;
+        }
+
         // send message to recipient
         for (Socket clientSocket : usernameMap.keySet()) {
             if (usernameMap.get(clientSocket).equals(recipientUsername)) {

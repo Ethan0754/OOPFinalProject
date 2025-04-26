@@ -35,7 +35,6 @@ public class ReceiveMessages extends Thread{
                     SwingUtilities.invokeLater(() -> {
                         boolean isDirect = finalMessage.startsWith("DIRECT_MESSAGE=");
                         chatEventHandler.onSendMessage("",finalMessage, isDirect);
-
                     });
                 }
 
