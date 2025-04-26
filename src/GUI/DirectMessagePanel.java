@@ -69,7 +69,7 @@ public class DirectMessagePanel extends JPanel {
                 // Send message
                 String message = dmField.getText().trim();
                 if (!message.isEmpty() && !message.equals(placeholderText)) {
-                    String finalMessage = "DIRECT_MESSAGE=" + recipient + ":" + message;
+                    String finalMessage = "DIRECT_MESSAGE=" + username + ":" + recipient + ":" + message;
 
                     try {
                         Client client = Client.getInstance();
@@ -127,6 +127,10 @@ public class DirectMessagePanel extends JPanel {
 
     public void setRecipient(String recipient) {
         this.recipient = recipient;
+    }
+
+    public String getRecipient(){
+        return recipient;
     }
 
 }

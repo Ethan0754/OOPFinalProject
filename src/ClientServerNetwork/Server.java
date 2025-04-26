@@ -1,5 +1,6 @@
 package ClientServerNetwork;
 
+import javax.xml.crypto.Data;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -56,18 +57,27 @@ public class Server {
         broadcastMessage(message);
     }
 
-    public void sendDirectMessage(String recipientUsername, String message) {
+    public void sendDirectMessage(String senderUsername, String recipientUsername, String message, Socket senderSocket) {
+        // send message to recipient
         for (Socket clientSocket : usernameMap.keySet()) {
             if (usernameMap.get(clientSocket).equals(recipientUsername)) {
                 try {
                     DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-                    sendMessagesToClients(out, "DIRECT_MESSAGE=" + message);
+                    sendMessagesToClients(out, "DIRECT_MESSAGE=" + senderUsername + ":" + recipientUsername + ":" + message);
                 } catch (IOException e) {
-                    System.out.println("Error sending direct message to client: " + e.getMessage());
+                    System.out.println("Error sending direct message to recipient: " + e.getMessage());
                 }
                 break;
             }
         }
+        // send message to sender (for their dm window)
+        try {
+            DataOutputStream out = new DataOutputStream(senderSocket.getOutputStream());
+            sendMessagesToClients(out, "DIRECT_MESSAGE=" + senderUsername + ":" + recipientUsername + ":" + message);
+        } catch (IOException e) {
+            System.out.println("Error sending direct message to sender: " + e.getMessage());
+        }
+
     }
 
 
@@ -131,12 +141,13 @@ public class Server {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
                     if (message.startsWith("DIRECT_MESSAGE=")) {
                         String privateMessage = message.substring("DIRECT_MESSAGE=".length());
-                        String[] partsOfMessage = privateMessage.split(":", 2);
+                        String[] partsOfMessage = privateMessage.split(":", 3);
 
-                        if (partsOfMessage.length == 2) {
-                            String recipientUsername = partsOfMessage[0];
-                            String privateMessageContent = partsOfMessage[1];
-                            sendDirectMessage(recipientUsername, username + ": " + privateMessageContent);
+                        if (partsOfMessage.length == 3) {
+                            String senderUsername = partsOfMessage[0];
+                            String recipientUsername = partsOfMessage[1];
+                            String privateMessageContent = partsOfMessage[2];
+                            sendDirectMessage(senderUsername, recipientUsername, privateMessageContent, clientSocket);
                         }
                     }
                     else {
