@@ -136,7 +136,7 @@ public class Server {
                         if (partsOfMessage.length == 2) {
                             String recipientUsername = partsOfMessage[0];
                             String privateMessageContent = partsOfMessage[1];
-                            sendDirectMessage(recipientUsername, privateMessageContent);
+                            sendDirectMessage(recipientUsername, username + ": " + privateMessageContent);
                         }
                     }
                     else {
