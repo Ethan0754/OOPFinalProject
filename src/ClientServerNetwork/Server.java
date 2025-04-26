@@ -1,10 +1,12 @@
 package ClientServerNetwork;
 
+import javax.xml.crypto.Data;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
     // Integer constants
@@ -17,6 +19,7 @@ public class Server {
     private DataInputStream in = null;
     // Use synchronized list to prevent threading issues while adding or removing a socket
     private List<Socket> clientSockets = Collections.synchronizedList(new ArrayList<>());
+    private ConcurrentHashMap<Socket, String> usernameMap = new ConcurrentHashMap<>();
 
     // Constructor with port
     public Server(int port) {
@@ -45,6 +48,47 @@ public class Server {
 
     public static void main(String[] args){
         Server s = new Server(SERVER_PORT);
+    }
+
+    public void broadcastUserList() {
+        List<String> usernames = new ArrayList<>(usernameMap.values());
+        String userList = String.join(",", usernames);
+        String message = "USER_LIST_UPDATE=" + userList;
+        broadcastMessage(message);
+    }
+
+    public void sendDirectMessage(String senderUsername, String recipientUsername, String message, Socket senderSocket) {
+        // send message to yourself, special scenario: only send it once
+        if (senderUsername.equals(recipientUsername)) {
+            try {
+                DataOutputStream out = new DataOutputStream(senderSocket.getOutputStream());
+                sendMessagesToClients(out, "DIRECT_MESSAGE=" + senderUsername + ":" + recipientUsername + ":" + message);
+            } catch (IOException e) {
+                System.out.println("Error sending direct message to self: " + e.getMessage());
+            }
+            return;
+        }
+
+        // send message to recipient
+        for (Socket clientSocket : usernameMap.keySet()) {
+            if (usernameMap.get(clientSocket).equals(recipientUsername)) {
+                try {
+                    DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+                    sendMessagesToClients(out, "DIRECT_MESSAGE=" + senderUsername + ":" + recipientUsername + ":" + message);
+                } catch (IOException e) {
+                    System.out.println("Error sending direct message to recipient: " + e.getMessage());
+                }
+                break;
+            }
+        }
+        // send message to sender (for their dm window)
+        try {
+            DataOutputStream out = new DataOutputStream(senderSocket.getOutputStream());
+            sendMessagesToClients(out, "DIRECT_MESSAGE=" + senderUsername + ":" + recipientUsername + ":" + message);
+        } catch (IOException e) {
+            System.out.println("Error sending direct message to sender: " + e.getMessage());
+        }
+
     }
 
 
@@ -95,29 +139,39 @@ public class Server {
                 // Create a DataInputStream to read messages from the client
                 inputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
                 outputStream = new DataOutputStream(clientSocket.getOutputStream());
-                // Will need to implement for GUI
                 outputStream.writeUTF("Please enter your username");
                 username = inputStream.readUTF();
                 outputStream.writeUTF("Welcome " + username + "!");
+                usernameMap.put(clientSocket, username);
+                broadcastUserList(); // notify current users connected on connection
                 System.out.println("Client (" + clientSocket + ") entered username: " + username);
                 String message;
 
 
                 while ((message = inputStream.readUTF()) != null) {
                     System.out.println("Client (" + clientSocket + ") says: " + message);
+                    if (message.startsWith("DIRECT_MESSAGE=")) {
+                        String privateMessage = message.substring("DIRECT_MESSAGE=".length());
+                        String[] partsOfMessage = privateMessage.split(":", 3);
 
-                    broadcastMessage(username + ": " + message);
+                        if (partsOfMessage.length == 3) {
+                            String senderUsername = partsOfMessage[0];
+                            String recipientUsername = partsOfMessage[1];
+                            String privateMessageContent = partsOfMessage[2];
+                            sendDirectMessage(senderUsername, recipientUsername, privateMessageContent, clientSocket);
+                        }
+                    }
+                    else {
+                        broadcastMessage(username + ": " + message);
+                    }
                 }
-
-                System.out.println("Client (" + clientSocket + ") disconnected");
-                clientSockets.remove(clientSocket);
-
-
-                System.out.println("Client disconnected: " + clientSocket);
-
             } catch (IOException e) {
                 System.out.println("Error handling client: " + e.getMessage());
             } finally {
+                System.out.println("Closing connection: " + clientSocket);
+                clientSockets.remove(clientSocket);
+                usernameMap.remove(clientSocket);
+                broadcastUserList();
 
                 try {
                     if (inputStream != null) inputStream.close();

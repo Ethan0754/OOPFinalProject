@@ -1,5 +1,7 @@
 package GUI;
 
+import ClientServerNetwork.Client;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -16,6 +18,7 @@ public class DirectMessagePanel extends JPanel {
     private JTextField dmField;
     private JButton dmSendButton;
     private String username;
+    private String recipient;
 
     // Interface
     private ChatEventHandler eventHandler;
@@ -66,7 +69,15 @@ public class DirectMessagePanel extends JPanel {
                 // Send message
                 String message = dmField.getText().trim();
                 if (!message.isEmpty() && !message.equals(placeholderText)) {
-                    eventHandler.onSendMessage(username, message, true);
+                    String finalMessage = "DIRECT_MESSAGE=" + username + ":" + recipient + ":" + message;
+
+                    try {
+                        Client client = Client.getInstance();
+                        client.sendMessageToServer(finalMessage);
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
                     dmField.setText("");
                 }
             }
@@ -112,6 +123,14 @@ public class DirectMessagePanel extends JPanel {
 
     public void setEventHandler(ChatEventHandler handler) {
         this.eventHandler = handler;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
+    }
+
+    public String getRecipient(){
+        return recipient;
     }
 
 }

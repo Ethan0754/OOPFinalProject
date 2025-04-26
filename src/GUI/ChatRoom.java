@@ -6,6 +6,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHandler, DirectMessageTriggerHandler {
     // Integer constants
@@ -22,8 +25,8 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
     // Initialize panels
     private ChatPanel chatPanel;
     private ActiveUsersPanel activeUsersPanel;
-    private JFrame directMessageWindow;
-    private DirectMessagePanel directMessagePanel;
+    private Map<String, JFrame> directMessageWindows = new ConcurrentHashMap<>();
+    private Map<String, DirectMessagePanel> directMessagePanels = new ConcurrentHashMap<>();
 
     public ChatRoom() {
         try {
@@ -41,14 +44,6 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
             chatPanel = new ChatPanel(this, this);
             activeUsersPanel = new ActiveUsersPanel();
 
-            // Create direct message window and panel
-            directMessagePanel = new DirectMessagePanel();
-            directMessagePanel.setEventHandler(this);
-            directMessageWindow = new JFrame("Direct Message");
-            directMessageWindow.setSize(DM_WINDOW_WIDTH, DM_WINDOW_HEIGHT);
-            directMessageWindow.setLocationRelativeTo(this);
-            directMessageWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-            directMessageWindow.add(directMessagePanel);
 
             // Other panels to be added:
             add(chatPanel, BorderLayout.CENTER);
@@ -72,6 +67,36 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
         String timestamp = LocalDateTime.now().format(formatter);
         String finalOutput;
 
+        if (message.startsWith("USER_LIST_UPDATE=")) {
+            String users = message.substring("USER_LIST_UPDATE=".length());
+            updateActiveUsers(users.split(","));
+            return;
+        }
+
+        if (isDirect) {
+            String privateMessage = message.substring("DIRECT_MESSAGE=".length());
+            String[] partsOfMessage = privateMessage.split(":", 3);
+
+            if (partsOfMessage.length == 3) {
+                String senderName = partsOfMessage[0].trim();
+                String recipientName = partsOfMessage[1].trim();
+                String messageContent = partsOfMessage[2].trim();
+                String currentUsername = chatPanel.getUsername();
+
+                String conversationPartner = senderName.equals(currentUsername) ? recipientName : senderName;
+
+                if (!directMessagePanels.containsKey(conversationPartner)) {
+                    triggerDirectMessagePanel(conversationPartner);
+                }
+
+                DirectMessagePanel targetPanel = directMessagePanels.get(conversationPartner);
+                if (targetPanel != null) {
+                    targetPanel.appendDirectMessage(senderName + ": " + messageContent + "\n(" + timestamp + ")\n");
+                }
+                return;
+            }
+        }
+
         // prevent duplicate username in output
         if (message.contains(":")) {
             finalOutput = message + "\n(" + timestamp + ")\n";
@@ -83,12 +108,8 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
             finalOutput =  message + "\n(" + timestamp + ")\n";
         }
 
-        if (isDirect) {
-            directMessagePanel.appendDirectMessage(finalOutput);
-        }
-        else {
-            chatPanel.appendMessage(finalOutput);
-        }
+        chatPanel.appendMessage(finalOutput);
+
     }
 
     // Updates the active users in the active users panel when a client's username is entered
@@ -99,10 +120,27 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
 
     @Override
     public void triggerDirectMessagePanel(String recipient) {
-        directMessagePanel.setBorder(BorderFactory.createTitledBorder(recipient));
-        directMessagePanel.setUsername(chatPanel.getUsername());
-        directMessageWindow.setVisible(true);
+       if (!directMessagePanels.containsKey(recipient)) {
+           DirectMessagePanel newDmPanel = new DirectMessagePanel();
+           newDmPanel.setEventHandler(this);
+           newDmPanel.setUsername(chatPanel.getUsername());
+           newDmPanel.setRecipient(recipient);
+           newDmPanel.setBorder(BorderFactory.createTitledBorder("Direct Message with " + recipient));
+
+           JFrame newDmWindow = new JFrame("Direct Message - " + recipient);
+           newDmWindow.setSize(DM_WINDOW_WIDTH, DM_WINDOW_HEIGHT);
+           newDmWindow.setLocationRelativeTo(this);
+           newDmWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+           newDmWindow.add(newDmPanel);
+
+           // Store in maps
+           directMessagePanels.put(recipient, newDmPanel);
+           directMessageWindows.put(recipient, newDmWindow);
+       }
+
+        directMessageWindows.get(recipient).setVisible(true);
     }
+
 
     // Run
     public static void main(String[] args){
