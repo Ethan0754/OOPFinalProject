@@ -80,9 +80,14 @@ public class ChatRoom extends JFrame implements ChatEventHandler, UserUpdateHand
 
         if (isDirect) {
             String privateMessage = message.substring("DIRECT_MESSAGE=".length());
-            privateMessage = privateMessage + "\n(" + timestamp + ")\n";
-            directMessagePanel.appendDirectMessage(privateMessage);
-            return;
+            String[] partsOfMessage = privateMessage.split(":");
+
+            if (partsOfMessage.length == 2) {
+                String senderName = partsOfMessage[0];
+                String messageToSend = partsOfMessage[1];
+                directMessagePanel.appendDirectMessage(senderName + ": " + messageToSend);
+                return;
+            }
         }
 
         // prevent duplicate username in output
